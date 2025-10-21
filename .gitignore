@@ -1,0 +1,42 @@
+== Compiled binaries ==
+*.exe
+*.out
+*.app
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+
+== Executable files ==
+boundedArrayTest
+bubblesort
+char_freq_test
+grades_0_5_histogram
+histogram
+main
+palindrome
+prime_test
+sortComparison
+wordSearch
+
+== IDE and editor files ==
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+== OS generated files ==
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+== Temporary files ==
+*.tmp
+*.temp
+*.log
