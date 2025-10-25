@@ -80,3 +80,4 @@ The performance gap becomes dramatic at N = 10000, where Insertion Sort takes 67
    - Bucket Sort provides a good middle ground with reasonable performance across all sizes
 
 The experimental results strongly support the theoretical time complexity analysis, with the measured growth rates closely matching the expected Big O behaviors.
+
