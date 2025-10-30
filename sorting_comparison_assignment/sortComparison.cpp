@@ -5,193 +5,193 @@
 #include <algorithm>
 #include <iomanip>
 
-// Helper function for radix sort - gets the length of a number in digits
-int radixGetLength(int value) {
-    if (value == 0) return 1;
-    int digits = 0;
-    while (value != 0) {
-        digits++;
-        value = value / 10;
+// Utility function to count digits in an integer for radix sorting
+int countDigitLength(int num) {
+    if (num == 0) return 1;
+    int digitCount = 0;
+    while (num != 0) {
+        digitCount++;
+        num = num / 10;
     }
-    return digits;
+    return digitCount;
 }
 
-// Helper function for radix sort - gets the maximum length in digits
-int radixGetMaxLength(const std::vector<int>& array) {
-    int maxDigits = 0;
-    for (int i = 0; i < array.size(); i++) {
-        int digitCount = radixGetLength(array[i]);
-        if (digitCount > maxDigits) {
-            maxDigits = digitCount;
+// Utility function to find the maximum digit count in an array
+int findMaxDigitCount(const std::vector<int>& data) {
+    int maxDigitCount = 0;
+    for (int i = 0; i < data.size(); i++) {
+        int currentDigitCount = countDigitLength(data[i]);
+        if (currentDigitCount > maxDigitCount) {
+            maxDigitCount = currentDigitCount;
         }
     }
-    return maxDigits;
+    return maxDigitCount;
 }
 
-// a) Insertion Sort function from homework 5
-void insertionSort(std::vector<int>& numbers) {
-    for (int i = 1; i < numbers.size(); i++) {
-        int key = numbers[i];
-        int j = i - 1;
+// Implementation of insertion sort algorithm
+void performInsertionSort(std::vector<int>& data) {
+    for (int i = 1; i < data.size(); i++) {
+        int currentElement = data[i];
+        int previousIndex = i - 1;
         
-        // Move elements that are greater than key one position ahead
-        while (j >= 0 && numbers[j] > key) {
-            numbers[j + 1] = numbers[j];
-            j = j - 1;
+        // Shift elements greater than current element to the right
+        while (previousIndex >= 0 && data[previousIndex] > currentElement) {
+            data[previousIndex + 1] = data[previousIndex];
+            previousIndex = previousIndex - 1;
         }
-        numbers[j + 1] = key;
+        data[previousIndex + 1] = currentElement;
     }
 }
 
-// b) Bucket Sort function
-void bucketSort(std::vector<int>& numbers, int numBuckets) {
-    if (numbers.size() < 1) return;
+// Implementation of bucket sort algorithm
+void performBucketSort(std::vector<int>& data, int bucketCount) {
+    if (data.size() < 1) return;
     
-    // Create buckets
-    std::vector<std::vector<int>> buckets(numBuckets);
+    // Initialize bucket containers
+    std::vector<std::vector<int>> bucketList(bucketCount);
     
-    // Find the maximum value
-    int maxValue = numbers[0];
-    for (int i = 1; i < numbers.size(); i++) {
-        if (numbers[i] > maxValue) {
-            maxValue = numbers[i];
+    // Determine the maximum value in the array
+    int maximumValue = data[0];
+    for (int i = 1; i < data.size(); i++) {
+        if (data[i] > maximumValue) {
+            maximumValue = data[i];
         }
     }
     
-    // Put each number in a bucket
-    for (int number : numbers) {
-        int index = (number * numBuckets) / (maxValue + 1);
-        buckets[index].push_back(number);
+    // Distribute elements into appropriate buckets
+    for (int element : data) {
+        int bucketIndex = (element * bucketCount) / (maximumValue + 1);
+        bucketList[bucketIndex].push_back(element);
     }
     
-    // Sort each bucket using insertion sort
-    for (auto& bucket : buckets) {
-        insertionSort(bucket);
+    // Sort each bucket individually using insertion sort
+    for (auto& bucket : bucketList) {
+        performInsertionSort(bucket);
     }
     
-    // Combine all buckets back into numbers list
-    int index = 0;
-    for (const auto& bucket : buckets) {
+    // Merge all buckets back into the original array
+    int currentIndex = 0;
+    for (const auto& bucket : bucketList) {
         for (int value : bucket) {
-            numbers[index++] = value;
+            data[currentIndex++] = value;
         }
     }
 }
 
-// c) Radix Sort function
-void radixSort(std::vector<int>& numbers) {
-    if (numbers.empty()) return;
+// Implementation of radix sort algorithm
+void performRadixSort(std::vector<int>& data) {
+    if (data.empty()) return;
     
-    std::vector<std::vector<int>> buckets(10);
+    std::vector<std::vector<int>> digitBuckets(10);
     
-    // Find the max length, in number of digits
-    int maxDigits = radixGetMaxLength(numbers);
+    // Calculate the maximum number of digits
+    int maxDigitCount = findMaxDigitCount(data);
     
-    // Start with the least significant digit
-    int pow10 = 1;
-    for (int digitIndex = 0; digitIndex < maxDigits; digitIndex++) {
-        for (int i = 0; i < numbers.size(); i++) {
-            int bucketIndex = (numbers[i] / pow10) % 10;
-            buckets[bucketIndex].push_back(numbers[i]);
+    // Process each digit position from least to most significant
+    int powerOfTen = 1;
+    for (int digitPosition = 0; digitPosition < maxDigitCount; digitPosition++) {
+        for (int i = 0; i < data.size(); i++) {
+            int bucketIndex = (data[i] / powerOfTen) % 10;
+            digitBuckets[bucketIndex].push_back(data[i]);
         }
         
-        int arrayIndex = 0;
+        int dataIndex = 0;
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < buckets[i].size(); j++) {
-                numbers[arrayIndex++] = buckets[i][j];
+            for (int j = 0; j < digitBuckets[i].size(); j++) {
+                data[dataIndex++] = digitBuckets[i][j];
             }
         }
         
-        pow10 = 10 * pow10;
+        powerOfTen = 10 * powerOfTen;
         
-        // Clear all buckets
-        for (auto& bucket : buckets) {
+        // Reset all buckets for next iteration
+        for (auto& bucket : digitBuckets) {
             bucket.clear();
         }
     }
 }
 
-// Function to generate random vector of given size with values 0-999
-std::vector<int> generateRandomVector(int size) {
-    std::vector<int> numbers(size);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 999);
+// Function to create a random vector with specified size and range 0-999
+std::vector<int> createRandomData(int dataSize) {
+    std::vector<int> randomData(dataSize);
+    std::random_device randomDevice;
+    std::mt19937 generator(randomDevice());
+    std::uniform_int_distribution<> distribution(0, 999);
     
-    for (int i = 0; i < size; i++) {
-        numbers[i] = dis(gen);
+    for (int i = 0; i < dataSize; i++) {
+        randomData[i] = distribution(generator);
     }
     
-    return numbers;
+    return randomData;
 }
 
-// Function to copy a vector
-std::vector<int> copyVector(const std::vector<int>& original) {
-    return std::vector<int>(original);
+// Function to duplicate a vector
+std::vector<int> duplicateVector(const std::vector<int>& source) {
+    return std::vector<int>(source);
 }
 
-// Function to test a sorting algorithm and return time in milliseconds
-double testSortingAlgorithm(void (*sortFunc)(std::vector<int>&), std::vector<int> numbers) {
-    auto start = std::chrono::high_resolution_clock::now();
-    sortFunc(numbers);
-    auto end = std::chrono::high_resolution_clock::now();
+// Function to measure sorting algorithm execution time in milliseconds
+double measureSortingTime(void (*sortingFunction)(std::vector<int>&), std::vector<int> data) {
+    auto startTime = std::chrono::high_resolution_clock::now();
+    sortingFunction(data);
+    auto endTime = std::chrono::high_resolution_clock::now();
     
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    return duration.count() / 1000.0; // Convert to milliseconds
+    auto timeSpan = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+    return timeSpan.count() / 1000.0; // Convert to milliseconds
 }
 
-// Function to test bucket sort with specific number of buckets
-double testBucketSort(std::vector<int> numbers, int numBuckets) {
-    auto start = std::chrono::high_resolution_clock::now();
-    bucketSort(numbers, numBuckets);
-    auto end = std::chrono::high_resolution_clock::now();
+// Function to measure bucket sort execution time with specific bucket count
+double measureBucketSortTime(std::vector<int> data, int bucketCount) {
+    auto startTime = std::chrono::high_resolution_clock::now();
+    performBucketSort(data, bucketCount);
+    auto endTime = std::chrono::high_resolution_clock::now();
     
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    return duration.count() / 1000.0; // Convert to milliseconds
+    auto timeSpan = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+    return timeSpan.count() / 1000.0; // Convert to milliseconds
 }
 
 int main() {
     std::cout << "Sorting Algorithm Comparison\n";
     std::cout << "============================\n\n";
     
-    // Test sizes
-    std::vector<int> testSizes = {10, 100, 1000, 10000};
-    int numIterations = 10;
+    // Define test array sizes
+    std::vector<int> arraySizes = {10, 100, 1000, 10000};
+    int testRuns = 10;
     
-    // Results storage
-    std::vector<std::vector<double>> insertionTimes(testSizes.size());
-    std::vector<std::vector<double>> bucketTimes(testSizes.size());
-    std::vector<std::vector<double>> radixTimes(testSizes.size());
+    // Storage for timing results
+    std::vector<std::vector<double>> insertionSortResults(arraySizes.size());
+    std::vector<std::vector<double>> bucketSortResults(arraySizes.size());
+    std::vector<std::vector<double>> radixSortResults(arraySizes.size());
     
-    // Run tests for each size
-    for (int sizeIndex = 0; sizeIndex < testSizes.size(); sizeIndex++) {
-        int size = testSizes[sizeIndex];
-        std::cout << "Testing with size " << size << ":\n";
+    // Execute performance tests for each array size
+    for (int sizeIndex = 0; sizeIndex < arraySizes.size(); sizeIndex++) {
+        int currentSize = arraySizes[sizeIndex];
+        std::cout << "Testing with size " << currentSize << ":\n";
         
-        for (int iter = 0; iter < numIterations; iter++) {
-            // Generate random vector
-            std::vector<int> originalNumbers = generateRandomVector(size);
+        for (int run = 0; run < testRuns; run++) {
+            // Create random test data
+            std::vector<int> testData = createRandomData(currentSize);
             
-            // Test Insertion Sort
-            std::vector<int> numbers1 = copyVector(originalNumbers);
-            double insertionTime = testSortingAlgorithm(insertionSort, numbers1);
-            insertionTimes[sizeIndex].push_back(insertionTime);
+            // Benchmark Insertion Sort
+            std::vector<int> data1 = duplicateVector(testData);
+            double insertionDuration = measureSortingTime(performInsertionSort, data1);
+            insertionSortResults[sizeIndex].push_back(insertionDuration);
             
-            // Test Bucket Sort (using size/10 buckets)
-            std::vector<int> numbers2 = copyVector(originalNumbers);
-            double bucketTime = testBucketSort(numbers2, size / 10);
-            bucketTimes[sizeIndex].push_back(bucketTime);
+            // Benchmark Bucket Sort (using size/10 buckets)
+            std::vector<int> data2 = duplicateVector(testData);
+            double bucketDuration = measureBucketSortTime(data2, currentSize / 10);
+            bucketSortResults[sizeIndex].push_back(bucketDuration);
             
-            // Test Radix Sort
-            std::vector<int> numbers3 = copyVector(originalNumbers);
-            double radixTime = testSortingAlgorithm(radixSort, numbers3);
-            radixTimes[sizeIndex].push_back(radixTime);
+            // Benchmark Radix Sort
+            std::vector<int> data3 = duplicateVector(testData);
+            double radixDuration = measureSortingTime(performRadixSort, data3);
+            radixSortResults[sizeIndex].push_back(radixDuration);
         }
         
-        std::cout << "Completed " << numIterations << " iterations for size " << size << "\n\n";
+        std::cout << "Completed " << testRuns << " iterations for size " << currentSize << "\n\n";
     }
     
-    // Calculate and display averages
+    // Compute and present average execution times
     std::cout << "RESULTS (Average wall clock times in milliseconds):\n";
     std::cout << "==================================================\n";
     std::cout << std::left << std::setw(10) << "Size" 
@@ -200,21 +200,21 @@ int main() {
               << std::setw(15) << "Radix Sort" << "\n";
     std::cout << "-----------------------------------------------------------\n";
     
-    for (int sizeIndex = 0; sizeIndex < testSizes.size(); sizeIndex++) {
-        int size = testSizes[sizeIndex];
+    for (int sizeIndex = 0; sizeIndex < arraySizes.size(); sizeIndex++) {
+        int currentSize = arraySizes[sizeIndex];
         
-        // Calculate averages
+        // Compute average execution times
         double avgInsertion = 0, avgBucket = 0, avgRadix = 0;
-        for (int i = 0; i < numIterations; i++) {
-            avgInsertion += insertionTimes[sizeIndex][i];
-            avgBucket += bucketTimes[sizeIndex][i];
-            avgRadix += radixTimes[sizeIndex][i];
+        for (int i = 0; i < testRuns; i++) {
+            avgInsertion += insertionSortResults[sizeIndex][i];
+            avgBucket += bucketSortResults[sizeIndex][i];
+            avgRadix += radixSortResults[sizeIndex][i];
         }
-        avgInsertion /= numIterations;
-        avgBucket /= numIterations;
-        avgRadix /= numIterations;
+        avgInsertion /= testRuns;
+        avgBucket /= testRuns;
+        avgRadix /= testRuns;
         
-        std::cout << std::left << std::setw(10) << size
+        std::cout << std::left << std::setw(10) << currentSize
                   << std::setw(20) << std::fixed << std::setprecision(4) << avgInsertion
                   << std::setw(20) << std::fixed << std::setprecision(4) << avgBucket
                   << std::setw(15) << std::fixed << std::setprecision(4) << avgRadix << "\n";
@@ -223,19 +223,19 @@ int main() {
     std::cout << "\nDetailed Results for Analysis:\n";
     std::cout << "==============================\n";
     
-    for (int sizeIndex = 0; sizeIndex < testSizes.size(); sizeIndex++) {
-        int size = testSizes[sizeIndex];
-        std::cout << "\nSize " << size << ":\n";
+    for (int sizeIndex = 0; sizeIndex < arraySizes.size(); sizeIndex++) {
+        int currentSize = arraySizes[sizeIndex];
+        std::cout << "\nSize " << currentSize << ":\n";
         std::cout << "Insertion Sort times: ";
-        for (double time : insertionTimes[sizeIndex]) {
+        for (double time : insertionSortResults[sizeIndex]) {
             std::cout << std::fixed << std::setprecision(4) << time << " ";
         }
         std::cout << "\nBucket Sort times: ";
-        for (double time : bucketTimes[sizeIndex]) {
+        for (double time : bucketSortResults[sizeIndex]) {
             std::cout << std::fixed << std::setprecision(4) << time << " ";
         }
         std::cout << "\nRadix Sort times: ";
-        for (double time : radixTimes[sizeIndex]) {
+        for (double time : radixSortResults[sizeIndex]) {
             std::cout << std::fixed << std::setprecision(4) << time << " ";
         }
         std::cout << "\n";
